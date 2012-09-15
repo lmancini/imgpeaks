@@ -123,6 +123,8 @@ def initGL():
 
     glClearColor(0.3, 0.3, 0.3, 1.0)
 
+    glEnableClientState(GL_VERTEX_ARRAY)
+
 angle = 0
 
 def paintGL():
@@ -138,14 +140,9 @@ def paintGL():
     with program.in_use():
         glUniform1i(height_texture, 0)        
         glActiveTexture(GL_TEXTURE0 + 0);
-        point_lattice.bind()
-        try:
-            glEnableClientState(GL_VERTEX_ARRAY)
+        with point_lattice:
             glVertexPointerf(point_lattice)
             glDrawArrays(GL_POINTS, 0, 100*100)
-        finally:
-            glDisableClientState(GL_VERTEX_ARRAY)
-            point_lattice.unbind()
 
 if __name__ == "__main__":
     import sys
