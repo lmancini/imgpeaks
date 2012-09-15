@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from contextlib import contextmanager
+
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.arrays import vbo
@@ -71,15 +73,17 @@ class Program(object):
         glAttachShader(self._program, fs._shader)
         glLinkProgram(self._program)
 
-    def use(self):
+    @contextmanager
+    def in_use(self):
         try:
-            glUseProgram(self._program)
-        except OpenGL.error.GLError:
-            print glGetProgramInfoLog(self._program)
-            raise
-
-    def done(self):
-        glUseProgram(0)
+            try:
+                glUseProgram(self._program)
+            except OpenGL.error.GLError:
+                print glGetProgramInfoLog(self._program)
+                raise
+            yield
+        finally:
+            glUseProgram(0)
 
     def getUniform(self, name):
         return glGetUniformLocation(self._program, name)
@@ -131,11 +135,9 @@ def paintGL():
     glRotated(angle, 0, 1, 0)
     angle += 0.01
 
-    program.use()
-    try:
+    with program.in_use():
         glUniform1i(height_texture, 0)        
         glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, it._tex_id);
         point_lattice.bind()
         try:
             glEnableClientState(GL_VERTEX_ARRAY)
@@ -144,8 +146,6 @@ def paintGL():
         finally:
             glDisableClientState(GL_VERTEX_ARRAY)
             point_lattice.unbind()
-    finally:
-        program.done()
 
 if __name__ == "__main__":
     import sys
