@@ -53,21 +53,24 @@ vs_src = """
 uniform sampler2D texture;
 uniform int width;
 uniform int height;
+varying vec2 lookup;
 
 void main () {
     vec4 v = vec4(gl_Vertex);
     float lx = (v.x + (width/2.0)) / width;
     float ly = (v.y + (height/2.0)) / height;
-    vec2 lookup = vec2(lx, ly);
+    lookup = vec2(lx, ly);
     v.z = texture2D(texture, lookup) * 20;
     gl_Position = gl_ModelViewProjectionMatrix * v;
 }
 """
 
 fs_src = """
+uniform sampler2D texture;
+varying vec2 lookup;
 void main(void)
 {
-    gl_FragColor = vec4(0.5, 0.5, 0.5, 0);
+    gl_FragColor = texture2D(texture, lookup);
 }
 """
 
