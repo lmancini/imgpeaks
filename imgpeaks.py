@@ -157,15 +157,20 @@ def initGL():
     glEnableClientState(GL_VERTEX_ARRAY)
 
 angle = 0.0
+anglex = 0.0
+angley = 0.0
 
 def paintGL(elapsed):
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-    global point_lattice, program, it1, it2, angle
+    global point_lattice, program, it1, it2
+    global angle, anglex, angley
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
+    glRotated(anglex, 1, 0, 0)
+    glRotated(angley, 0, 1, 0)
 
     # 90 deg/s
     angle += (elapsed * 360.0) / 4000.0
@@ -203,6 +208,8 @@ if __name__ == "__main__":
     then = pygame.time.get_ticks()
 
     running = True
+    mdown = False
+    mpos = (0, 0)
     while running:
         now = pygame.time.get_ticks()
         elapsed = now - then
@@ -211,8 +218,19 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
-            if event.type == pygame.QUIT:
+            elif event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
+                mdown = True
+                mpos = event.pos
+            elif event.type == pygame.MOUSEBUTTONUP:
+                mdown = False
+            elif mdown and event.type == pygame.MOUSEMOTION:
+                dx = event.pos[0] - mpos[0]
+                dy = event.pos[1] - mpos[1]
+                anglex += dy
+                angley -= dx
+                mpos = event.pos
 
         paintGL(elapsed)
 
