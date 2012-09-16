@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 import math
+import ctypes
 from contextlib import contextmanager
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.arrays import vbo
 from PIL import Image
-from numpy import array
 
 import pygame
 
@@ -141,9 +141,12 @@ def initGL():
 
     # Create array of points
     global point_lattice
-    point_lattice = vbo.VBO(
-        array([(x-50, y-50, 0) for x in xrange(100) for y in xrange(100)], 'f')
-    )
+    points = (ctypes.c_float * 2 * 100 * 100)()
+    for x in xrange(100):
+        for y in xrange(100):
+            points[x][y][0] = (x - 50)
+            points[x][y][1] = (y - 50)
+    point_lattice = vbo.VBO(points)
 
     glEnable(GL_DEPTH_TEST)
 
