@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import math
 from contextlib import contextmanager
 
 from OpenGL.GL import *
@@ -49,27 +50,44 @@ class FragmentShader(Shader):
     type = GL_FRAGMENT_SHADER
 
 vs_src = """
-uniform sampler2D texture;
+uniform float blend;
+uniform sampler2D texture1;
+uniform sampler2D texture2;
 uniform int width;
 uniform int height;
-varying vec2 lookup;
+
+varying vec4 color1;
+varying vec4 color2;
 
 void main () {
     vec4 v = vec4(gl_Vertex);
+
     float lx = (v.x + (width/2.0)) / width;
     float ly = (v.y + (height/2.0)) / height;
-    lookup = vec2(lx, ly);
-    v.z = texture2D(texture, lookup) * 20;
+    vec2 lookup = vec2(lx, ly);
+
+    color1 = texture2D(texture1, lookup);
+    color2 = texture2D(texture2, lookup);
+
+    float h1 = color1.x * 20.0;
+    float h2 = color2.x * 20.0;
+
+    v.z = h1 * blend + h2 * (1-blend);
+
     gl_Position = gl_ModelViewProjectionMatrix * v;
 }
 """
 
 fs_src = """
-uniform sampler2D texture;
-varying vec2 lookup;
+uniform float blend;
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+varying vec4 color1;
+varying vec4 color2;
 void main(void)
 {
-    gl_FragColor = texture2D(texture, lookup);
+    vec4 color = color1 * blend + color2 * (1-blend);
+    gl_FragColor = color;
 }
 """
 
@@ -96,16 +114,24 @@ class Program(object):
         u = glGetUniformLocation(self._program, name)
         glUniform1i(u, value)
 
-it = None
+    def setUniform1f(self, name, value):
+        u = glGetUniformLocation(self._program, name)
+        glUniform1f(u, value)
+
+it1 = it2 = None
 program = None
 point_lattice = None
 
 def initGL():
     im = Image.open(sys.argv[1])
     im = im.convert('L')
+    global it1
+    it1 = ImageTexture(im)
 
-    global it
-    it = ImageTexture(im)
+    im = Image.open(sys.argv[2])
+    im = im.convert('L')
+    global it2
+    it2 = ImageTexture(im)
 
     vs = VertexShader(vs_src)
     fs = FragmentShader(fs_src)
@@ -124,7 +150,7 @@ def initGL():
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     gluPerspective(90,1,0.01,1000)
-    gluLookAt(0,0,-100,0,0,0,0,1,0)
+    gluLookAt(0,0,-70,0,0,0,0,1,0)
 
     glClearColor(0.3, 0.3, 0.3, 1.0)
 
@@ -136,21 +162,28 @@ def paintGL(elapsed):
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-    global point_lattice, program, it, angle
+    global point_lattice, program, it1, it2, angle
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
-    glRotated(angle, 0, 1, 0)
 
     # 90 deg/s
     angle += (elapsed * 360.0) / 4000.0
+    blend = (math.sin(math.radians(angle)) + 1.0) / 2.0
 
     with program.in_use():
-        program.setUniform1i("width", it.width)
-        program.setUniform1i("height", it.height)
+        program.setUniform1f("blend", blend)
+
+        program.setUniform1i("width", it1.width)
+        program.setUniform1i("height", it1.height)
 
         glActiveTexture(GL_TEXTURE0 + 0)
-        program.setUniform1i("texture", 0)
+        it1.bind()
+        program.setUniform1i("texture1", 0)
+
+        glActiveTexture(GL_TEXTURE0 + 1)
+        it2.bind()
+        program.setUniform1i("texture2", 1)
 
         with point_lattice:
             glVertexPointerf(point_lattice)
@@ -159,7 +192,7 @@ def paintGL(elapsed):
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:
-        print "Usage: imgpeaks.py <image>"
+        print "Usage: imgpeaks.py <image1> <image2>"
         sys.exit(1)
 
     pygame.init() 
