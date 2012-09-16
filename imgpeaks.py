@@ -125,9 +125,10 @@ def initGL():
 
     glEnableClientState(GL_VERTEX_ARRAY)
 
-angle = 0
+angle = 0.0
 
-def paintGL():
+def paintGL(elapsed):
+
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
     global point_lattice, program, height_texture, it, angle
@@ -135,7 +136,9 @@ def paintGL():
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
     glRotated(angle, 0, 1, 0)
-    angle += 0.01
+
+    # 90 deg/s
+    angle += (elapsed * 360.0) / 4000.0
 
     with program.in_use():
         glUniform1i(height_texture, 0)        
@@ -155,12 +158,19 @@ if __name__ == "__main__":
 
     initGL()
 
+    then = pygame.time.get_ticks()
+
     running = True
     while running:
+        now = pygame.time.get_ticks()
+        elapsed = now - then
+        then = now
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
 
-        paintGL()
+        paintGL(elapsed)
 
         pygame.display.flip()
+        pygame.time.wait(0)
