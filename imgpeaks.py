@@ -90,18 +90,12 @@ class Program(object):
         finally:
             glUseProgram(0)
 
-    def getUniform(self, name):
-        return glGetUniformLocation(self._program, name)
-    def setUniform1f(self, name, value):
-        u = glGetUniformLocation(self._program, name)
-        glUniform1f(u, value)
     def setUniform1i(self, name, value):
         u = glGetUniformLocation(self._program, name)
         glUniform1i(u, value)
 
 it = None
 program = None
-height_texture = None
 point_lattice = None
 
 def initGL():
@@ -116,8 +110,6 @@ def initGL():
 
     global program
     program = Program(vs, fs)
-    global height_texture
-    height_texture = program.getUniform("texture")
 
     # Create array of points
     global point_lattice
@@ -142,7 +134,7 @@ def paintGL(elapsed):
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-    global point_lattice, program, height_texture, it, angle
+    global point_lattice, program, it, angle
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
@@ -152,11 +144,12 @@ def paintGL(elapsed):
     angle += (elapsed * 360.0) / 4000.0
 
     with program.in_use():
-        program.setUniform1f("width", it.width)
-        program.setUniform1f("height", it.height)
-        #program.setUniform1i("height_texture", 0)
-        glUniform1i(height_texture, 0)
+        program.setUniform1i("width", it.width)
+        program.setUniform1i("height", it.height)
+
         glActiveTexture(GL_TEXTURE0 + 0)
+        program.setUniform1i("texture", 0)
+
         with point_lattice:
             glVertexPointerf(point_lattice)
             glDrawArrays(GL_POINTS, 0, 100*100)
