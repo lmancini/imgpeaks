@@ -9,7 +9,6 @@ from PIL import Image
 from numpy import array
 
 import pygame
-from pygame.locals import *
 
 class ImageTexture(object):
     def __init__(self, image):
@@ -177,7 +176,9 @@ if __name__ == "__main__":
         then = now
 
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+            if event.type == pygame.QUIT:
                 running = False
 
         paintGL(elapsed)
