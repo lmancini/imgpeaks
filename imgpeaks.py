@@ -51,10 +51,15 @@ class FragmentShader(Shader):
 
 vs_src = """
 uniform sampler2D texture;
+uniform int width;
+uniform int height;
 
 void main () {
     vec4 v = vec4(gl_Vertex);
-    v.z = texture2D(texture, vec2((v.x + 50) / 100, (v.y + 50) / 100)) * 20;
+    float lx = (v.x + (width/2.0)) / width;
+    float ly = (v.y + (height/2.0)) / height;
+    vec2 lookup = vec2(lx, ly);
+    v.z = texture2D(texture, lookup) * 20;
     gl_Position = gl_ModelViewProjectionMatrix * v;
 }
 """
@@ -87,6 +92,12 @@ class Program(object):
 
     def getUniform(self, name):
         return glGetUniformLocation(self._program, name)
+    def setUniform1f(self, name, value):
+        u = glGetUniformLocation(self._program, name)
+        glUniform1f(u, value)
+    def setUniform1i(self, name, value):
+        u = glGetUniformLocation(self._program, name)
+        glUniform1i(u, value)
 
 it = None
 program = None
@@ -141,8 +152,11 @@ def paintGL(elapsed):
     angle += (elapsed * 360.0) / 4000.0
 
     with program.in_use():
-        glUniform1i(height_texture, 0)        
-        glActiveTexture(GL_TEXTURE0 + 0);
+        program.setUniform1f("width", it.width)
+        program.setUniform1f("height", it.height)
+        #program.setUniform1i("height_texture", 0)
+        glUniform1i(height_texture, 0)
+        glActiveTexture(GL_TEXTURE0 + 0)
         with point_lattice:
             glVertexPointerf(point_lattice)
             glDrawArrays(GL_POINTS, 0, 100*100)
