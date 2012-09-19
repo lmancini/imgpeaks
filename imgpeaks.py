@@ -79,6 +79,7 @@ class Program(object):
 it1 = it2 = None
 program = None
 point_lattice = None
+points = None
 
 def initGL():
     im = Image.open(sys.argv[1])
@@ -98,7 +99,7 @@ def initGL():
     program = Program(vs, fs)
 
     # Create array of points
-    global point_lattice
+    global point_lattice, points
     points = (ctypes.c_float * 2 * 100 * 100)()
     for x in xrange(100):
         for y in xrange(100):
@@ -125,7 +126,7 @@ def paintGL(elapsed):
 
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
-    global point_lattice, program, it1, it2
+    global point_lattice, points, program, it1, it2
     global angle, anglex, angley
 
     glMatrixMode(GL_MODELVIEW)
@@ -139,9 +140,8 @@ def paintGL(elapsed):
 
     with program.in_use():
         program.setUniform1f("blend", blend)
-
-        program.setUniform1i("width", it1.width)
-        program.setUniform1i("height", it1.height)
+        program.setUniform1f("npw", float(len(points)))
+        program.setUniform1f("nph", float(len(points[0])))
 
         glActiveTexture(GL_TEXTURE0 + 0)
         it1.bind()
