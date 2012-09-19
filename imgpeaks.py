@@ -112,7 +112,7 @@ def initGL():
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     gluPerspective(90,1,0.01,1000)
-    gluLookAt(0,0,-70,0,0,0,0,1,0)
+    gluLookAt(0,0,100,0,0,0,0,1,0)
 
     glClearColor(0.3, 0.3, 0.3, 1.0)
 
