@@ -33,6 +33,9 @@ class Shader(object):
 
     def __init__(self, source):
         self._shader = glCreateShader(self.type)
+        # glShaderSource actually expects a list of strings...
+        if isinstance(source, basestring):
+            source = [source]
         glShaderSource(self._shader, source)
         glCompileShader(self._shader)
 
