@@ -15,7 +15,7 @@ class ImageTexture(object):
     def __init__(self, image):
         self.width = image.size[0]
         self.height = image.size[1]
-        self.buffer = image.convert("RGBA").tostring("raw", "RGBA", 0, -1)
+        self.buffer = image.convert("RGBA").tobytes("raw", "RGBA", 0, -1)
 
         self._tex_id = glGenTextures(1)
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         print "Usage: imgpeaks.py <image1> <image2>"
         sys.exit(1)
 
-    pygame.init() 
+    pygame.init()
     pygame.display.set_mode((800, 600), pygame.OPENGL|pygame.DOUBLEBUF)
 
     initGL()
